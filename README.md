@@ -19,7 +19,7 @@ Este é um sistema simples de **cadastro de alunos** desenvolvido em Python com 
 
 1. Clone este repositório:
    ```bash
-   git clone https://github.com/seu-repositorio/cadastroalunos.git
+   git clone https://github.com/pedrohd21/Cadastroalunos.git
    ```
 2. Navegue até o diretório do projeto:
    ```bash
