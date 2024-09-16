@@ -19,6 +19,10 @@ CREATE TABLE IF NOT EXISTS alunos (
 )
 ''')
 
+# Configuração da janela principal
+root = tk.Tk()
+root.title("Sistema de Gestão de Academia")
+
 # Função para adicionar um novo aluno
 def adicionar_aluno():
     nome = nome_entry.get()
@@ -50,7 +54,36 @@ def visualizar_alunos():
     cursor.execute("SELECT * FROM alunos")
     alunos = cursor.fetchall()
     for aluno in alunos:
-        tree.insert('', 'end', values=(aluno[0], aluno[1], aluno[2], aluno[3], f"R$ {aluno[4]:.2f}", aluno[5]))
+        try:
+            valor_mensalidade = float(aluno[4])  # Converter para float
+            tree.insert('', 'end', values=(aluno[0], aluno[1], aluno[2], aluno[3], f"R$ {valor_mensalidade:.2f}", aluno[5]))
+        except ValueError:
+            tree.insert('', 'end', values=(aluno[0], aluno[1], aluno[2], aluno[3], aluno[4], aluno[5]))  # Caso o valor não seja numérico
+
+# Função para carregar os dados de um aluno selecionado
+def carregar_dados_aluno(event):
+    try:
+        selected_item = tree.selection()[0]
+        aluno = tree.item(selected_item)['values']
+
+        # Preenchendo os campos com os dados do aluno selecionado
+        nome_entry.delete(0, tk.END)
+        nome_entry.insert(0, aluno[1])
+
+        nascimento_entry.delete(0, tk.END)
+        nascimento_entry.insert(0, aluno[2])
+
+        endereco_entry.delete(0, tk.END)
+        endereco_entry.insert(0, aluno[3])
+
+        mensalidade_entry.delete(0, tk.END)
+        mensalidade_entry.insert(0, aluno[4].replace('R$ ', ''))  # Removendo o "R$" para exibir o valor numérico
+
+        inscricao_entry.delete(0, tk.END)
+        inscricao_entry.insert(0, aluno[5])
+
+    except IndexError:
+        messagebox.showerror("Erro", "Selecione um aluno válido.")
 
 # Função para atualizar dados do aluno
 def atualizar_aluno():
@@ -86,24 +119,23 @@ def deletar_aluno():
     try:
         selected_item = tree.selection()[0]
         aluno_id = tree.item(selected_item)['values'][0]
+        aluno_nome = tree.item(selected_item)['values'][1]  # Captura o nome do aluno
+
         cursor.execute("DELETE FROM alunos WHERE id=?", (aluno_id,))
         conn.commit()
         tree.delete(selected_item)
-        messagebox.showinfo("Sucesso", "Aluno deletado com sucesso!")
+
+        messagebox.showinfo("Sucesso", f"Aluno {aluno_nome} deletado com sucesso!")
     except IndexError:
         messagebox.showerror("Erro", "Selecione um aluno para deletar.")
 
-# Função para limpar campos
+# Função para limpar os campos
 def limpar_campos():
     nome_entry.delete(0, tk.END)
     nascimento_entry.delete(0, tk.END)
     endereco_entry.delete(0, tk.END)
     mensalidade_entry.delete(0, tk.END)
     inscricao_entry.delete(0, tk.END)
-
-# Configuração da janela principal
-root = tk.Tk()
-root.title("Sistema de Gestão de Academia")
 
 # Labels e entradas
 tk.Label(root, text="Nome").grid(row=0, column=0, padx=10, pady=5, sticky='w')
@@ -144,6 +176,9 @@ for col in cols:
     tree.heading(col, text=col)
     tree.column(col, width=150, anchor='w')  # Ajustando a largura das colunas
 tree.grid(row=6, column=0, columnspan=2, padx=10, pady=10, sticky='nsew')
+
+# Bind para carregar os dados quando um aluno for selecionado
+tree.bind("<<TreeviewSelect>>", carregar_dados_aluno)
 
 # Configurações de expansão
 root.grid_rowconfigure(6, weight=1)
